@@ -36,67 +36,102 @@ class Bni(Bank) :
     def cek_saldo(self) :
         return self.saldo
 
-daftar_rekening = []
-while True :
-    print('\nMenu :\n1. Buat Rekening\n2. Setor Tunai\n3. Tarik Tunai\n4. Cek Saldo\n5. Keluar')
-    pilihan = int(input('Masukkan pilihan : '))
+def buat_rekening(daftar_rekening):
+    while True:
+        norek = input('Masukkan no. rekening: ')
+        if any(rekening.norek == norek for rekening in daftar_rekening):
+            print('Nomor rekening telah terdaftar!')
+        else:
+            break
 
-    if pilihan == 1 :
-        cek_norek = True
-        val = 0
-        while cek_norek :
-            norek = input('Masukkan no. rekening : ')
-            for x in daftar_rekening :
-                if norek == x.norek :
-                    val += 1
-            if val > 0 :
-                print('Nomor rekening telah terdaftar!')
-            else :
-                cek_norek = False
-        nama = input('Masukkan nama : ')
-        print('1. BCA\n2. BNI')
-        pilihan_bank = True
-        while pilihan_bank == True :
-            j_b = int(input('Masukkan jenis bank(1/2) : '))
-            if not 0 < j_b < 3 :
-                print('Jenis bank tidak valid!')
-            else :
-                pilihan_bank = False
-        if j_b == 1 :
-            saldo = float(input('Masukkan saldo : '))
-            bca_baru = Bca(norek, nama, saldo)
-            daftar_rekening.append(bca_baru)
-        else :
-            saldo = float(input('Masukkan saldo : '))
-            bni_baru = Bni(norek, nama, saldo)
-            daftar_rekening.append(bni_baru)
+    nama = input('Masukkan nama: ')
+    print('1. BCA\n2. BNI')
 
-    elif pilihan == 2 :
-        norek = input('Masukkan no. rekening : ')
-        for x in daftar_rekening :
-            if x.norek == norek :
-                saldo_tambahan = float(input('Masukkan nilai setor tunai : '))
-                x.setor_tunai(saldo_tambahan)
+    while True:
+        jenis_bank = int(input('Masukkan jenis bank (1/2): '))
+        if jenis_bank in [1, 2]:
+            break
+        else:
+            print('Jenis bank tidak valid!')
 
-    elif pilihan == 3 :
-        norek = input('Masukkan no. rekening : ')
-        for x in daftar_rekening :
-            if x.norek == norek :
-                saldo_tarikan = float(input('Masukkan nilai tarik tunai : '))
-                print(f'Anda yakin?\nSisa saldo anda : {x.saldo}.\nJika ditarik : {x.saldo - saldo_tarikan}')
-                pilihan_tarik = input('Y/N : ')
-                if pilihan_tarik == 'y' or pilihan_tarik == 'Y' :
-                    x.tarik_tunai(saldo_tarikan)
-                    print("Tarik tunai berhasil")
-                else :
-                    print('Batal melakukan tarik tunai')
+    saldo = float(input('Masukkan saldo: '))
+    if jenis_bank == 1:
+        rekening_baru = Bca(norek, nama, saldo)
+    else:
+        rekening_baru = Bni(norek, nama, saldo)
 
-    elif pilihan == 4 :
-        norek = input('Masukkan no. rekening : ')
-        for x in daftar_rekening :
-            if x.norek == norek :
-                print(f'Sisa saldo anda : {x.saldo}')
+    daftar_rekening.append(rekening_baru)
+    print("Rekening berhasil dibuat!")
 
-    else :
-        print('\nTerima kasih!')
-        break
+def setor_tunai(daftar_rekening):
+    norek = input('Masukkan no. rekening: ')
+    rekening = next((x for x in daftar_rekening if x.norek == norek), None)
+
+    if rekening:
+        saldo_tambahan = float(input('Masukkan nilai setor tunai: '))
+        rekening.setor_tunai(saldo_tambahan)
+        print("Setor tunai berhasil")
+    else:
+        print("Rekening tidak ditemukan!")
+
+def tarik_tunai(daftar_rekening):
+    norek = input('Masukkan no. rekening: ')
+    rekening = next((x for x in daftar_rekening if x.norek == norek), None)
+
+    if rekening:
+        saldo_tarikan = float(input('Masukkan nilai tarik tunai: '))
+        if saldo_tarikan > rekening.saldo:
+            print("Saldo tidak mencukupi untuk melakukan penarikan.")
+            return
+
+        if rekening.saldo - saldo_tarikan < 0:
+            print("Penarikan tidak dapat dilakukan karena saldo akan menjadi kurang dari 0.")
+            return
+
+        print(f'Anda yakin?\nSisa saldo anda: {rekening.saldo}\nJika ditarik: {rekening.saldo - saldo_tarikan}')
+        pilihan_tarik = input('Y/N: ').lower()
+
+        if pilihan_tarik == 'y':
+            rekening.tarik_tunai(saldo_tarikan)
+            print("Tarik tunai berhasil")
+        else:
+            print('Batal melakukan tarik tunai')
+    else:
+        print("Rekening tidak ditemukan!")
+
+def cek_saldo(daftar_rekening):
+    norek = input('Masukkan no. rekening: ')
+    rekening = next((x for x in daftar_rekening if x.norek == norek), None)
+
+    if rekening:
+        print(f'Sisa saldo anda: {rekening.saldo}')
+    else:
+        print("Rekening tidak ditemukan!")
+
+def main():
+    daftar_rekening = []
+
+    while True:
+        print('\nMenu:\n1. Buat Rekening\n2. Setor Tunai\n3. Tarik Tunai\n4. Cek Saldo\n5. Keluar')
+        try:
+            pilihan = int(input('Masukkan pilihan: '))
+        except ValueError:
+            print("Pilihan harus berupa angka!")
+            continue
+
+        if pilihan == 1:
+            buat_rekening(daftar_rekening)
+        elif pilihan == 2:
+            setor_tunai(daftar_rekening)
+        elif pilihan == 3:
+            tarik_tunai(daftar_rekening)
+        elif pilihan == 4:
+            cek_saldo(daftar_rekening)
+        elif pilihan == 5:
+            print('\nTerima kasih!')
+            break
+        else:
+            print("Pilihan tidak valid, silakan coba lagi.")
+
+if __name__ == "__main__":
+    main()
